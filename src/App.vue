@@ -1,47 +1,121 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { ref, watch } from 'vue'
+import { useSpeechSynthesis, useStorage } from '@vueuse/core'
+import VoiceTable from '@/components/VoiceTable.vue'
+
+const defaultRate = 1
+const defaultPitch = 1
+const defaultText = 'Hello, World!'
+const defaultVoiceURI = null
+const rate = useStorage<number>('rate', defaultRate)
+const pitch = useStorage<number>('pitch', defaultPitch)
+const text = useStorage<string>('text', defaultText)
+const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
+const voices = ref<SpeechSynthesisVoice[]>([])
+const voice = ref<SpeechSynthesisVoice | null>(null)
+window.speechSynthesis.onvoiceschanged = () => {
+  voices.value = window.speechSynthesis.getVoices()
+  if (voices.value.length > 0) {
+    voice.value = voices.value.find((v) => v.voiceURI === voiceURI.value) || voices.value[0]
+  }
+}
+watch(voice, (v) => {
+  voiceURI.value = v?.voiceURI
+})
+const { speak, stop } = useSpeechSynthesis(text, {
+  voice: voice,
+  rate: rate,
+  pitch: pitch,
+})
+const reset = () => {
+  rate.value = defaultRate
+  pitch.value = defaultPitch
+  text.value = defaultText
+  voiceURI.value = defaultVoiceURI
+  voice.value = voices.value[0]
+}
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <h1>Try synthetic speech</h1>
     </div>
   </header>
 
   <main>
-    <TheWelcome />
+    <div></div>
+    <div>
+      <div>
+        <div>
+          <label for="voice">Voice</label>
+          <div>
+            <select id="voice" v-model="voice">
+              <option v-for="v in voices" :key="v.name" :value="v">
+                {{ v.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="text">Text</label>
+          <div>
+            <textarea
+              id="text"
+              v-model="text"
+              placeholder="Type something here"
+              rows="4"
+              cols="50"
+            /><span>{{ text.length }}</span>
+          </div>
+        </div>
+
+        <div>
+          <label for="rate">Rate</label>
+          <input id="rate" type="number" min="0.1" max="10" step="0.1" v-model="rate" />
+          <label for="pitch">Pitch</label>
+          <input id="pitch" type="number" min="0.1" max="10" step="0.1" v-model="pitch" />
+        </div>
+      </div>
+      <button @click="speak">Speak</button>
+      <button @click="stop">Stop</button>
+      <button @click="reset">Reset</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Default</th>
+            <th>Local Service</th>
+            <th>Lang</th>
+            <th>URI</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              {{ voice?.default }}
+            </td>
+            <td>
+              {{ voice?.localService }}
+            </td>
+            <td>
+              {{ voice?.lang }}
+            </td>
+            <td>
+              {{ voice?.voiceURI }}
+            </td>
+            <td>
+              {{ voice?.name }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <VoiceTable v-if="voices.length" :voices="voices" />
+      <div v-else>Loading...</div>
+    </div>
   </main>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+<style scoped></style>
