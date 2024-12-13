@@ -145,7 +145,7 @@ const onStop = () => {
               v-model="text"
               placeholder="Type something here"
               rows="4"
-              cols="50"
+              cols="30"
             />
             <div>
               <span>{{ text.length }}</span
