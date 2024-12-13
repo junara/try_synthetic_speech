@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useSpeechSynthesis, type UseSpeechSynthesisStatus, useStorage } from '@vueuse/core'
 import VoiceTable from '@/components/VoiceTable.vue'
 
@@ -22,12 +22,33 @@ interface HistoryItem {
 }
 
 const history = ref<HistoryItem[]>([])
-window.speechSynthesis.onvoiceschanged = () => {
+const loadVoices = () => {
   voices.value = window.speechSynthesis.getVoices()
   if (voices.value.length > 0) {
     voice.value = voices.value.find((v) => v.voiceURI === voiceURI.value) || voices.value[0]
   }
 }
+
+loadVoices()
+
+onMounted(() => {
+  if (voices.value.length === 0) {
+    // 音声リストがまだ初期化されていない場合に備える
+    const intervalId = setInterval(() => {
+      loadVoices()
+      if (voices.value.length > 0) {
+        clearInterval(intervalId) // 値を取得したら定期実行を停止
+      }
+    }, 100)
+
+    // モダンブラウザ用のイベントリスナーを追加
+    window.speechSynthesis.onvoiceschanged = () => {
+      loadVoices()
+      clearInterval(intervalId) // 値を取得後は停止（安全のため）
+    }
+  }
+})
+
 watch(voice, (v) => {
   voiceURI.value = v?.voiceURI
 })
