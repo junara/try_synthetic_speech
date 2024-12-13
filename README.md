@@ -1,10 +1,16 @@
 # try_synthetic_speech
 
-This template should help get you started developing with Vue 3 in Vite.
+Sandbox for JavaScript [SpeechSynthesis API](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis).
 
-## Recommended IDE Setup
+## Demo site
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+https://trysyntheticspeech.netlify.app/
+
+## Features
+* form to input text and select voice.
+* buttons to play, pause, resume, and stop speech.
+* list of available voices.
+* each value is stored in the local storage.
 
 ## Type Support for `.vue` Imports in TS
 
