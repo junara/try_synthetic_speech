@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import {
   useDateFormat,
   useNow,
   useSpeechSynthesis,
   type UseSpeechSynthesisStatus,
   useStorage,
+  useTimestamp,
 } from '@vueuse/core'
 import VoiceTable from '@/components/VoiceTable.vue'
 
@@ -19,6 +20,9 @@ const text = useStorage<string>('text', defaultText)
 const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
 const voices = ref<SpeechSynthesisVoice[]>([])
 const voice = ref<SpeechSynthesisVoice | null>(null)
+const elapsed = ref(0)
+const timestamp = useTimestamp({ offset: 0 })
+const startTime = ref(0)
 
 interface HistoryItem {
   text: string
@@ -27,6 +31,7 @@ interface HistoryItem {
   time: string
   rate?: number
   pitch?: number
+  elapsed?: number
 }
 
 const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss')
@@ -61,19 +66,28 @@ onMounted(() => {
 watch(voice, (v) => {
   voiceURI.value = v?.voiceURI
 })
-const { speak, stop, status } = useSpeechSynthesis(text, {
+
+const { speak, stop, status, isPlaying } = useSpeechSynthesis(text, {
   voice: voice,
   rate: rate,
   pitch: pitch,
 })
+
 const reset = () => {
+  stop()
   rate.value = defaultRate
   pitch.value = defaultPitch
   text.value = defaultText
   voiceURI.value = defaultVoiceURI
   voice.value = voices.value[0]
+  elapsed.value = 0
 }
+
 watch(status, (s) => {
+  if (s === 'play') {
+  } else if (s === 'end') {
+    elapsed.value = timestamp.value - startTime.value
+  }
   history.value.unshift({
     text: text.value,
     voice: voice.value?.voiceURI,
@@ -81,8 +95,26 @@ watch(status, (s) => {
     time: formatted.value,
     rate: rate.value,
     pitch: pitch.value,
+    elapsed: elapsed.value / 1000,
   })
 })
+
+const currentElapsed = computed(() => {
+  if (isPlaying.value) {
+    return timestamp.value - startTime.value
+  } else {
+    return elapsed.value
+  }
+})
+
+const onSpeak = () => {
+  elapsed.value = 0
+  startTime.value = timestamp.value
+  speak()
+}
+const onStop = () => {
+  stop()
+}
 </script>
 
 <template>
@@ -114,7 +146,15 @@ watch(status, (s) => {
               placeholder="Type something here"
               rows="4"
               cols="50"
-            /><span>{{ text.length }}</span>
+            />
+            <div>
+              <span>{{ text.length }}</span
+              ><span>character number</span>
+            </div>
+            <div>
+              <span>{{ currentElapsed / 1000 }}</span
+              ><span>sec</span>
+            </div>
           </div>
         </div>
 
@@ -126,8 +166,8 @@ watch(status, (s) => {
         </div>
       </div>
       <div>
-        <button @click="speak">Speak</button>
-        <button @click="stop">Stop</button>
+        <button @click="onSpeak">Speak</button>
+        <button @click="onStop">Stop</button>
         <button @click="reset">Reset</button>
       </div>
       <div>
@@ -140,6 +180,9 @@ watch(status, (s) => {
                 <th>Text</th>
                 <th>Length</th>
                 <th>Voice</th>
+                <th>Elapsed</th>
+                <th>Rate</th>
+                <th>Pitch</th>
               </tr>
             </thead>
             <tbody>
@@ -158,6 +201,15 @@ watch(status, (s) => {
                 </td>
                 <td>
                   {{ item.voice }}
+                </td>
+                <td>
+                  {{ item.elapsed }}
+                </td>
+                <td>
+                  {{ item.rate }}
+                </td>
+                <td>
+                  {{ item.pitch }}
                 </td>
               </tr>
             </tbody>
