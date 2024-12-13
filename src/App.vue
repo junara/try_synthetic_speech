@@ -39,12 +39,11 @@ const reset = () => {
 <template>
   <header>
     <div class="wrapper">
-      <h1>Try synthetic speech</h1>
+      <h3>Try synthetic speech</h3>
     </div>
   </header>
 
   <main>
-    <div></div>
     <div>
       <div>
         <div>
