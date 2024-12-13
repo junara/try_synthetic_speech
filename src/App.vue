@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useSpeechSynthesis, useStorage } from '@vueuse/core'
+import { useSpeechSynthesis, type UseSpeechSynthesisStatus, useStorage } from '@vueuse/core'
 import VoiceTable from '@/components/VoiceTable.vue'
 
 const defaultRate = 1
@@ -13,6 +13,15 @@ const text = useStorage<string>('text', defaultText)
 const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
 const voices = ref<SpeechSynthesisVoice[]>([])
 const voice = ref<SpeechSynthesisVoice | null>(null)
+
+interface HistoryItem {
+  text: string
+  voice: string | undefined
+  status: UseSpeechSynthesisStatus
+  time: Date
+}
+
+const history = ref<HistoryItem[]>([])
 window.speechSynthesis.onvoiceschanged = () => {
   voices.value = window.speechSynthesis.getVoices()
   if (voices.value.length > 0) {
@@ -22,7 +31,7 @@ window.speechSynthesis.onvoiceschanged = () => {
 watch(voice, (v) => {
   voiceURI.value = v?.voiceURI
 })
-const { speak, stop } = useSpeechSynthesis(text, {
+const { speak, stop, status } = useSpeechSynthesis(text, {
   voice: voice,
   rate: rate,
   pitch: pitch,
@@ -34,6 +43,14 @@ const reset = () => {
   voiceURI.value = defaultVoiceURI
   voice.value = voices.value[0]
 }
+watch(status, (s) => {
+  history.value.push({
+    text: text.value,
+    voice: voice.value?.voiceURI,
+    status: s,
+    time: new Date(),
+  })
+})
 </script>
 
 <template>
@@ -76,9 +93,46 @@ const reset = () => {
           <input id="pitch" type="number" min="0.1" max="10" step="0.1" v-model="pitch" />
         </div>
       </div>
-      <button @click="speak">Speak</button>
-      <button @click="stop">Stop</button>
-      <button @click="reset">Reset</button>
+      <div>
+        <button @click="speak">Speak</button>
+        <button @click="stop">Stop</button>
+        <button @click="reset">Reset</button>
+      </div>
+      <div>
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Text</th>
+                <th>Length</th>
+                <th>Voice</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in history" :key="item.time">
+                <td>
+                  {{ item.time }}
+                </td>
+                <td>
+                  {{ item.status }}
+                </td>
+                <td>
+                  {{ item.text }}
+                </td>
+                <td>
+                  {{ item.text.length }}
+                </td>
+                <td>
+                  {{ item.voice }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <table>
         <thead>
           <tr>
