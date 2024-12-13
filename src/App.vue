@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { useSpeechSynthesis, type UseSpeechSynthesisStatus, useStorage } from '@vueuse/core'
+import {
+  useDateFormat,
+  useNow,
+  useSpeechSynthesis,
+  type UseSpeechSynthesisStatus,
+  useStorage,
+} from '@vueuse/core'
 import VoiceTable from '@/components/VoiceTable.vue'
 
 const defaultRate = 1
@@ -18,9 +24,12 @@ interface HistoryItem {
   text: string
   voice: string | undefined
   status: UseSpeechSynthesisStatus
-  time: Date
+  time: string
+  rate?: number
+  pitch?: number
 }
 
+const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss')
 const history = ref<HistoryItem[]>([])
 const loadVoices = () => {
   voices.value = window.speechSynthesis.getVoices()
@@ -65,11 +74,13 @@ const reset = () => {
   voice.value = voices.value[0]
 }
 watch(status, (s) => {
-  history.value.push({
+  history.value.unshift({
     text: text.value,
     voice: voice.value?.voiceURI,
     status: s,
-    time: new Date(),
+    time: formatted.value,
+    rate: rate.value,
+    pitch: pitch.value,
   })
 })
 </script>
