@@ -175,40 +175,40 @@ const onStop = () => {
           <table>
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Text</th>
-                <th>Length</th>
-                <th>Voice</th>
-                <th>Elapsed</th>
-                <th>Rate</th>
-                <th>Pitch</th>
+                <th scope="col" role="columnheader">Time</th>
+                <th scope="col" role="columnheader">Status</th>
+                <th scope="col" role="columnheader">Text</th>
+                <th scope="col" role="columnheader">Length</th>
+                <th scope="col" role="columnheader">Voice</th>
+                <th scope="col" role="columnheader">Elapsed</th>
+                <th scope="col" role="columnheader">Rate</th>
+                <th scope="col" role="columnheader">Pitch</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="item in history" :key="item.time">
-                <td>
+                <td role="cell">
                   {{ item.time }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.status }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.text }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.text.length }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.voice }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.elapsed }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.rate }}
                 </td>
-                <td>
+                <td role="cell">
                   {{ item.pitch }}
                 </td>
               </tr>
@@ -220,28 +220,28 @@ const onStop = () => {
       <table>
         <thead>
           <tr>
-            <th>Default</th>
-            <th>Local Service</th>
-            <th>Lang</th>
-            <th>URI</th>
-            <th>Name</th>
+            <th scope="col" role="columnheader">Default</th>
+            <th scope="col" role="columnheader">Local Service</th>
+            <th scope="col" role="columnheader">Lang</th>
+            <th scope="col" role="columnheader">URI</th>
+            <th scope="col" role="columnheader">Name</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td role="cell">
               {{ voice?.default }}
             </td>
-            <td>
+            <td role="cell">
               {{ voice?.localService }}
             </td>
-            <td>
+            <td role="cell">
               {{ voice?.lang }}
             </td>
-            <td>
+            <td role="cell">
               {{ voice?.voiceURI }}
             </td>
-            <td>
+            <td role="cell">
               {{ voice?.name }}
             </td>
           </tr>
