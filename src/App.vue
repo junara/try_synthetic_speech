@@ -19,7 +19,7 @@ const pitch = useStorage<number>('pitch', defaultPitch)
 const text = useStorage<string>('text', defaultText)
 const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
 const voices = ref<SpeechSynthesisVoice[]>([])
-const voice = ref<SpeechSynthesisVoice | null>(null)
+const voice = ref<SpeechSynthesisVoice>()
 const elapsed = ref(0)
 const timestamp = useTimestamp({ offset: 0 })
 const startTime = ref(0)
@@ -68,7 +68,7 @@ watch(voice, (v) => {
 })
 
 const { speak, stop, status, isPlaying } = useSpeechSynthesis(text, {
-  voice: voice,
+  voice: voice.value || undefined,
   rate: rate,
   pitch: pitch,
 })
