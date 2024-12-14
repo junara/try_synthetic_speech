@@ -46,15 +46,9 @@
   </table>
 </template>
 <script setup lang="ts">
+import type { HistoryItem } from '@/composables/useSyntheticSpeechForm.ts'
+
 defineProps<{
-  history: {
-    time: string
-    status: string
-    text: string
-    voice: string
-    elapsed: string
-    rate: number
-    pitch: number
-  }[]
+  history: HistoryItem[]
 }>()
 </script>
