@@ -9,7 +9,7 @@ import {
   useTimestamp,
 } from '@vueuse/core'
 import VoiceTable from '@/components/VoiceTable.vue'
-import HistoryTable from '@/HistoryTable.vue'
+import HistoryTable from '@/components/HistoryTable.vue'
 
 const defaultRate = 1
 const defaultPitch = 1
