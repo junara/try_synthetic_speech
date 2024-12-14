@@ -15,10 +15,12 @@ const defaultRate = 1
 const defaultPitch = 1
 const defaultText = 'Hello, World!'
 const defaultVoiceURI = null
+const defaultLang = 'en-US'
 const rate = useStorage<number>('rate', defaultRate)
 const pitch = useStorage<number>('pitch', defaultPitch)
 const text = useStorage<string>('text', defaultText)
 const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
+const lang = useStorage<string>('lang', defaultLang)
 const voices = ref<SpeechSynthesisVoice[]>([])
 const voice = ref<SpeechSynthesisVoice>()
 const elapsed = ref(0)
@@ -80,7 +82,8 @@ const reset = () => {
   pitch.value = defaultPitch
   text.value = defaultText
   voiceURI.value = defaultVoiceURI
-  voice.value = voices.value[0]
+  lang.value = defaultLang
+  voice.value = filteredVoices.value[0]
   elapsed.value = 0
 }
 
@@ -107,6 +110,17 @@ const currentElapsed = computed(() => {
   }
 })
 
+const langs = computed(() => {
+  return voices.value
+    .map((v) => v.lang)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .sort((a, b) => a.localeCompare(b))
+})
+
+const filteredVoices = computed(() => {
+  return voices.value.filter((v) => v.lang === lang.value)
+})
+
 const onSpeak = () => {
   elapsed.value = 0
   startTime.value = timestamp.value
@@ -114,6 +128,10 @@ const onSpeak = () => {
 }
 const onStop = () => {
   stop()
+}
+
+const onChangeLang = () => {
+  voice.value = filteredVoices.value[0]
 }
 </script>
 
@@ -124,9 +142,15 @@ const onStop = () => {
 
   <main>
     <div>
+      <label for="lang">Lang</label>
+      <select id="lang" v-model="lang" @change="onChangeLang">
+        <option v-for="l in langs" :key="l" :value="l">
+          {{ l }}
+        </option>
+      </select>
       <label for="voice">Voice</label>
       <select id="voice" v-model="voice">
-        <option v-for="v in voices" :key="v.name" :value="v">
+        <option v-for="v in filteredVoices" :key="v.name" :value="v">
           {{ v.name }}
         </option>
       </select>
@@ -142,8 +166,6 @@ const onStop = () => {
         <button v-if="!isPlaying" :disabled="text.length === 0" @click="onSpeak">Speak</button>
         <button v-if="isPlaying" @click="onStop">Stop</button>
         <button v-if="!isPlaying" @click="reset">Reset</button>
-      </div>
-      <div>
         <span>{{ currentElapsed / 1000 }}</span> <span>sec</span>
       </div>
     </div>
