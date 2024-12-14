@@ -84,8 +84,7 @@ const reset = () => {
 }
 
 watch(status, (s) => {
-  if (s === 'play') {
-  } else if (s === 'end') {
+  if (s === 'end') {
     elapsed.value = timestamp.value - startTime.value
   }
   history.value.unshift({
@@ -160,9 +159,9 @@ const onStop = () => {
 
         <div>
           <label for="rate">Rate</label>
-          <input id="rate" type="number" min="0.1" max="10" step="0.1" v-model="rate" />
+          <input id="rate" v-model="rate" type="number" min="0.1" max="10" step="0.1" />
           <label for="pitch">Pitch</label>
-          <input id="pitch" type="number" min="0.1" max="10" step="0.1" v-model="pitch" />
+          <input id="pitch" v-model="pitch" type="number" min="0.1" max="10" step="0.1" />
         </div>
       </div>
       <div>
