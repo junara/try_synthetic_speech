@@ -1,5 +1,8 @@
 <template>
   <table>
+    <caption>
+      Available Voices
+    </caption>
     <thead>
       <tr>
         <th scope="col" role="columnheader">Default</th>

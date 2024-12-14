@@ -172,6 +172,9 @@ const onStop = () => {
       <div>
         <div>
           <table>
+            <caption>
+              History
+            </caption>
             <thead>
               <tr>
                 <th scope="col" role="columnheader">Time</th>
@@ -217,6 +220,9 @@ const onStop = () => {
       </div>
 
       <table>
+        <caption>
+          Selected Voice
+        </caption>
         <thead>
           <tr>
             <th scope="col" role="columnheader">Default</th>
