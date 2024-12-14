@@ -4,7 +4,7 @@ import { onMounted, ref, watch, computed } from 'vue'
 
 export interface HistoryItem {
   text: string
-  voice: string | undefined
+  voice?: SpeechSynthesisVoice
   status: UseSpeechSynthesisStatus
   time: string
   rate: number
@@ -71,6 +71,10 @@ export default function useSyntheticSpeechForm() {
       .sort((a, b) => a.localeCompare(b))
   })
 
+  const initialVoiceURI = computed(() => {
+    return filteredVoices.value[0] || voices.value[0]
+  })
+
   const filteredVoices = computed(() => {
     return voices.value.filter((v) => v.lang === lang.value)
   })
@@ -82,9 +86,9 @@ export default function useSyntheticSpeechForm() {
     rate.value = defaultRate
     pitch.value = defaultPitch
     text.value = defaultText
-    voiceURI.value = defaultVoiceURI
     lang.value = defaultLang
-    voice.value = filteredVoices.value[0]
+    voice.value = initialVoiceURI.value
+    voiceURI.value = initialVoiceURI.value?.voiceURI
     elapsed.value = 0
   }
 
@@ -109,7 +113,7 @@ export default function useSyntheticSpeechForm() {
     }
     history.value.unshift({
       text: text.value,
-      voice: voice.value?.voiceURI,
+      voice: voice.value,
       status: s,
       time: formatted.value,
       rate: rate.value,

@@ -16,7 +16,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in history" :key="item.time">
+      <tr v-for="(item, index) in history" :key="index">
         <td role="cell">
           {{ item.time }}
         </td>
@@ -30,7 +30,7 @@
           {{ item.text.length }}
         </td>
         <td role="cell">
-          {{ item.voice }}
+          {{ item.voice?.voiceURI }}
         </td>
         <td role="cell">
           {{ item.elapsed }}
