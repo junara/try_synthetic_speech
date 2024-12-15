@@ -1,17 +1,9 @@
-import { useStorage, useTimestamp, useDateFormat, useNow, useSpeechSynthesis } from '@vueuse/core'
-import type { UseSpeechSynthesisStatus } from '@vueuse/core'
-import { onMounted, ref, watch, computed } from 'vue'
+import { useStorage } from '@vueuse/core'
+import { ref, watch, computed } from 'vue'
+import useClientSpeechSynthesisVoice from '@/composables/useClientSpeechSynthesisVoice.ts'
+import useSpeech, { type HistoryItem } from '@/composables/useSpeech.ts'
 
-export interface HistoryItem {
-  text: string
-  voice?: SpeechSynthesisVoice
-  status: UseSpeechSynthesisStatus
-  time: string
-  rate: number
-  pitch: number
-  elapsed: number
-}
-const voices = ref<SpeechSynthesisVoice[]>([])
+const { langs, voices } = useClientSpeechSynthesisVoice()
 const history = ref<HistoryItem[]>([])
 
 export const globalStore = () => {
@@ -22,137 +14,82 @@ export const globalStore = () => {
 }
 
 export default function useSyntheticSpeechForm() {
-  const defaultRate = 1
-  const defaultPitch = 1
-  const defaultText = 'Hello, World!'
-  const defaultVoiceURI = null
-  const defaultLang = 'en-US'
-  const rate = useStorage<number>('rate', defaultRate)
-  const pitch = useStorage<number>('pitch', defaultPitch)
-  const text = useStorage<string>('text', defaultText)
-  const voiceURI = useStorage<string>('voiceURI', defaultVoiceURI)
-  const lang = useStorage<string>('lang', defaultLang)
-  const voice = ref<SpeechSynthesisVoice>()
-  const elapsed = ref(0)
-
-  watch(voice, (v) => {
-    voiceURI.value = v?.voiceURI
-  })
-  const loadVoices = () => {
-    voices.value = window.speechSynthesis.getVoices()
-    if (voices.value.length > 0) {
-      voice.value = voices.value.find((v) => v.voiceURI === voiceURI.value) || voices.value[0]
-    }
+  const defaultValue = {
+    rate: 1,
+    pitch: 1,
+    text: 'Hello, World!',
+    voiceURI: null,
+    lang: null,
   }
+  const rate = useStorage<number>('rate', defaultValue.rate)
+  const pitch = useStorage<number>('pitch', defaultValue.pitch)
+  const text = useStorage<string>('text', defaultValue.text)
+  const voiceURI = useStorage<string>('voiceURI', defaultValue.voiceURI)
+  const lang = useStorage<string>('lang', defaultValue.lang)
 
-  loadVoices()
-
-  onMounted(() => {
-    if (voices.value.length === 0) {
-      // 音声リストがまだ初期化されていない場合に備える
-      const intervalId = setInterval(() => {
-        loadVoices()
-        if (voices.value.length > 0) {
-          clearInterval(intervalId) // 値を取得したら定期実行を停止
-        }
-      }, 100)
-
-      // モダンブラウザ用のイベントリスナーを追加
-      window.speechSynthesis.onvoiceschanged = () => {
-        loadVoices()
-        clearInterval(intervalId) // 値を取得後は停止（安全のため）
-      }
-    }
-  })
-  const langs = computed(() => {
-    return voices.value
-      .map((v) => v.lang)
-      .filter((v, i, a) => a.indexOf(v) === i)
-      .sort((a, b) => a.localeCompare(b))
+  const voice = computed(() => {
+    return voices.value.find((v) => v.voiceURI === voiceURI.value)
   })
 
-  const initialVoiceURI = computed(() => {
+  const initialVoice = computed(() => {
     return filteredVoices.value[0] || voices.value[0]
   })
 
   const filteredVoices = computed(() => {
     return voices.value.filter((v) => v.lang === lang.value)
   })
+
   const onChangeLang = () => {
-    voice.value = filteredVoices.value[0]
+    voiceURI.value = filteredVoices.value[0]?.voiceURI
   }
+
   const reset = () => {
-    stop()
-    rate.value = defaultRate
-    pitch.value = defaultPitch
-    text.value = defaultText
-    lang.value = defaultLang
-    voice.value = initialVoiceURI.value
-    voiceURI.value = initialVoiceURI.value?.voiceURI
-    elapsed.value = 0
+    resetSpeech()
+    rate.value = defaultValue.rate
+    pitch.value = defaultValue.pitch
+    text.value = defaultValue.text
+    lang.value = defaultValue.lang
+    voiceURI.value = initialVoice.value?.voiceURI
   }
 
-  watch(voiceURI, () => {
-    voice.value = voices.value.find((v) => v.voiceURI === voiceURI.value)
-  })
-  const timestamp = useTimestamp({ offset: 0 })
-  const startTime = ref(0)
-
-  const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss')
-
-  const { speak, stop, status, isPlaying } = useSpeechSynthesis(text, {
+  const {
+    currentElapsed,
+    elapsed,
+    history: _history,
+    isPlaying,
+    reset: resetSpeech,
+    speak,
+    stop,
+  } = useSpeech(text, {
     voice: voice,
     rate: rate,
     pitch: pitch,
     lang: lang,
   })
 
-  watch(status, (s) => {
-    if (s === 'end') {
-      elapsed.value = timestamp.value - startTime.value
-    }
-    history.value.unshift({
-      text: text.value,
-      voice: voice.value,
-      status: s,
-      time: formatted.value,
-      rate: rate.value,
-      pitch: pitch.value,
-      elapsed: elapsed.value / 1000,
-    })
-  })
+  watch(
+    _history,
+    (h) => {
+      history.value = h
+    },
+    { deep: true },
+  )
 
-  const currentElapsed = computed(() => {
-    if (isPlaying.value) {
-      return timestamp.value - startTime.value
-    } else {
-      return elapsed.value
-    }
-  })
-
-  const onSpeak = () => {
-    elapsed.value = 0
-    startTime.value = timestamp.value
-    speak()
-  }
-  const onStop = () => {
-    stop()
-  }
   return {
-    rate,
-    pitch,
-    text,
-    voiceURI,
-    lang,
-    voice,
-    elapsed,
-    langs,
-    filteredVoices,
-    onChangeLang,
-    reset,
     currentElapsed,
-    onSpeak,
-    onStop,
+    elapsed,
+    filteredVoices,
     isPlaying,
+    lang,
+    langs,
+    onChangeLang,
+    pitch,
+    rate,
+    reset,
+    speak,
+    stop,
+    text,
+    voice,
+    voiceURI,
   }
 }

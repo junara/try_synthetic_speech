@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import useSyntheticSpeechForm from '@/composables/useSyntheticSpeechForm.ts'
+import { ref, watch } from 'vue'
 const {
   lang,
   langs,
@@ -11,13 +12,55 @@ const {
   isPlaying,
   currentElapsed,
   onChangeLang,
-  onSpeak,
-  onStop,
+  speak,
+  stop,
   reset,
 } = useSyntheticSpeechForm()
+
+const errorMessages = ref<string[]>([])
+
+const resetErrorMessages = () => {
+  errorMessages.value = []
+}
+const onSpeak = () => {
+  resetErrorMessages()
+  if (!lang.value) {
+    errorMessages.value.push('Please select Lang.')
+  }
+  if (!voiceURI.value) {
+    errorMessages.value.push('Please select Voice.')
+  }
+  if (!text.value || text.value.length === 0) {
+    errorMessages.value.push('Please input Text.')
+  }
+  if (errorMessages.value.length > 0) {
+    return
+  }
+  speak()
+}
+const onStop = () => {
+  resetErrorMessages()
+  stop()
+}
+
+const onReset = () => {
+  resetErrorMessages()
+  reset()
+}
+watch(
+  () => lang.value,
+  () => {
+    resetErrorMessages()
+  },
+)
 </script>
 <template>
   <div>
+    <ul v-if="errorMessages.length > 0" class="notice">
+      <li v-for="(e, index) in errorMessages" :key="index">
+        {{ e }}
+      </li>
+    </ul>
     <label for="lang">Lang</label>
     <select id="lang" v-model="lang" @change="onChangeLang">
       <option v-for="l in langs" :key="l" :value="l">
@@ -39,9 +82,9 @@ const {
     >
     <textarea id="text" v-model="text" placeholder="Type something here" rows="4" cols="30" />
     <div>
-      <button v-if="!isPlaying" :disabled="text.length === 0" @click="onSpeak">Speak</button>
+      <button v-if="!isPlaying" @click="onSpeak">Speak</button>
       <button v-if="isPlaying" @click="onStop">Stop</button>
-      <button v-if="!isPlaying" @click="reset">Reset</button>
+      <button v-if="!isPlaying" @click="onReset">Reset</button>
       <span>{{ currentElapsed / 1000 }}</span>
       <span>sec</span>
     </div>
