@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import useSyntheticSpeechForm from '@/composables/useSyntheticSpeechForm.ts'
-import { ref, watch } from 'vue'
+import { ref, useTemplateRef, watch } from 'vue'
+import { useFocus, useMagicKeys, whenever } from '@vueuse/core'
+const { Ctrl_Enter, Meta_Enter } = useMagicKeys()
 const {
   lang,
   langs,
@@ -47,6 +49,9 @@ const onReset = () => {
   resetErrorMessages()
   reset()
 }
+const input = useTemplateRef('my-input')
+useFocus(input, { initialValue: true })
+
 watch(
   () => lang.value,
   () => {
@@ -83,7 +88,14 @@ whenever(Ctrl_Enter, () => onSpeak())
     <label for="text"
       >Text <i v-if="text.length">{{ text.length }}</i></label
     >
-    <textarea id="text" v-model="text" placeholder="Type something here" rows="4" cols="30" />
+    <textarea
+      id="text"
+      ref="my-input"
+      v-model="text"
+      placeholder="Type something here"
+      rows="4"
+      cols="30"
+    />
     <div>
       <button v-if="!isPlaying" @click="onSpeak">Speak</button>
       <button v-if="isPlaying" @click="onStop">Stop</button>
