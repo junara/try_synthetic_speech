@@ -32,6 +32,12 @@ const onSpeak = () => {
   if (!voiceURI.value) {
     errorMessages.value.push('Please select Voice.')
   }
+  if (!rate.value || rate.value <= 0) {
+    errorMessages.value.push('Please input Rate.')
+  }
+  if (!pitch.value || pitch.value <= 0) {
+    errorMessages.value.push('Please input Pitch.')
+  }
   if (!text.value || text.value.length === 0) {
     errorMessages.value.push('Please input Text.')
   }

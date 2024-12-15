@@ -27,6 +27,10 @@ export default function useSyntheticSpeechForm() {
   const voiceURI = useStorage<string>('voiceURI', defaultValue.voiceURI)
   const lang = useStorage<string>('lang', defaultValue.lang)
 
+  // 手動で不正な値（文字列等）を設定している場合はデフォルト値を設定
+  if (!(rate.value > 0)) rate.value = defaultValue.rate
+  if (!(pitch.value > 0)) rate.value = defaultValue.pitch
+
   const voice = computed(() => {
     return voices.value.find((v) => v.voiceURI === voiceURI.value)
   })
