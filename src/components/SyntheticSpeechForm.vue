@@ -53,6 +53,9 @@ watch(
     resetErrorMessages()
   },
 )
+
+whenever(Meta_Enter, () => onSpeak())
+whenever(Ctrl_Enter, () => onSpeak())
 </script>
 <template>
   <div>
@@ -88,5 +91,8 @@ watch(
       <span>{{ currentElapsed / 1000 }}</span>
       <span>sec</span>
     </div>
+    <p>
+      Speak by pressing <mark>Speak</mark> button or <kbd>Ctrl+Enter</kbd> or <kbd>Cmd+Enter</kbd>.
+    </p>
   </div>
 </template>
