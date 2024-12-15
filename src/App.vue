@@ -26,6 +26,7 @@ watch(localLang, (lang) => {
     <figure>
       <HistoryTable v-if="history.length" :history="history" />
     </figure>
+    <p>Repository: https://github.com/junara/try_synthetic_speech</p>
 
     <section>
       <h2>Browser available voices in each lang</h2>
@@ -60,6 +61,7 @@ watch(localLang, (lang) => {
 
   <footer>
     <a href="#">Return to top</a>
+    <p>https://github.com/junara/try_synthetic_speech</p>
   </footer>
 </template>
 
