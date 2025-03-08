@@ -35,7 +35,7 @@ const playSilentAudio = () => {
   oscillator.start()
 
   // 0秒で再生（即座に停止）
-  oscillator.stop(audioContext.currentTime + 1)
+  oscillator.stop(audioContext.currentTime + 0.5)
 }
 
 export default function useSpeech(text: Ref<string>, options: useSpeechSynthesisOptions) {
@@ -87,7 +87,10 @@ export default function useSpeech(text: Ref<string>, options: useSpeechSynthesis
     lastElapsedTime.value = 0
     startTime.value = timestamp.value
     playSilentAudio()
-    _speak()
+    //   一秒後にならす
+    setTimeout(() => {
+      _speak()
+    }, 1000)
   }
 
   const reset = () => {
