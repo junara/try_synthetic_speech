@@ -31,11 +31,11 @@ const playSilentAudio = () => {
   const gainNode = audioContext.createGain()
   oscillator.connect(gainNode)
   gainNode.connect(audioContext.destination)
-  gainNode.gain.value = 0
+  gainNode.gain.value = 1
   oscillator.start()
 
   // 0秒で再生（即座に停止）
-  oscillator.stop(audioContext.currentTime)
+  oscillator.stop(audioContext.currentTime + 1)
 }
 
 export default function useSpeech(text: Ref<string>, options: useSpeechSynthesisOptions) {
