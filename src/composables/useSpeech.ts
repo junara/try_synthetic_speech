@@ -26,7 +26,7 @@ export interface useSpeechSynthesisOptions {
 const audioContext = new AudioContext()
 
 // Web Audio APIを使って無音の音声を再生する
-const playSilentAudio = () => {
+const playSilentAudio = (): Promise<void> => {
   const oscillator = audioContext.createOscillator()
   const gainNode = audioContext.createGain()
   oscillator.connect(gainNode)
@@ -34,8 +34,15 @@ const playSilentAudio = () => {
   gainNode.gain.value = 1
   oscillator.start()
 
-  // 0秒で再生（即座に停止）
+  // 0.5秒で再生（即座に停止）
   oscillator.stop(audioContext.currentTime + 0.5)
+
+  //   １秒だったらthenを返すpromiseを返す
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve()
+    }, 1000)
+  })
 }
 
 export default function useSpeech(text: Ref<string>, options: useSpeechSynthesisOptions) {
@@ -86,11 +93,9 @@ export default function useSpeech(text: Ref<string>, options: useSpeechSynthesis
   const speak = () => {
     lastElapsedTime.value = 0
     startTime.value = timestamp.value
-    playSilentAudio()
-    //   一秒後にならす
-    setTimeout(() => {
+    playSilentAudio().then(() => {
       _speak()
-    }, 1000)
+    })
   }
 
   const reset = () => {
