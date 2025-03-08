@@ -23,6 +23,21 @@ export interface useSpeechSynthesisOptions {
   pitch: Ref<number>
   lang: Ref<string>
 }
+const audioContext = new AudioContext()
+
+// Web Audio APIを使って無音の音声を再生する
+const playSilentAudio = () => {
+  const oscillator = audioContext.createOscillator()
+  const gainNode = audioContext.createGain()
+  oscillator.connect(gainNode)
+  gainNode.connect(audioContext.destination)
+  gainNode.gain.value = 0
+  oscillator.start()
+
+  // 0秒で再生（即座に停止）
+  oscillator.stop(audioContext.currentTime)
+}
+
 export default function useSpeech(text: Ref<string>, options: useSpeechSynthesisOptions) {
   const lastElapsedTime = ref(0)
   const startTime = ref(0)
@@ -71,6 +86,7 @@ export default function useSpeech(text: Ref<string>, options: useSpeechSynthesis
   const speak = () => {
     lastElapsedTime.value = 0
     startTime.value = timestamp.value
+    playSilentAudio()
     _speak()
   }
 
